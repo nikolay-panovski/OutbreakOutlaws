@@ -7,7 +7,8 @@ public class Player : AnimationSprite
 {
     protected Collision coll_info = null;
     protected int HP;                       // for HP
-    protected float cooldown;               // for abilities
+    protected float bullet_cooldown;        // for shooting
+    //protected float cooldown;               // for abilities
     protected float shield_timer;           // for Energy Shield
 
     protected const float MAX_VELOCITY = -3.2f;     // bruteforced values that work kinda well

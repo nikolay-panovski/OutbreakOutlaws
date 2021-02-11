@@ -1,5 +1,6 @@
 ﻿using System;
 using GXPEngine;
+using GXPEngine.Core;
 using TiledMapParser;
 
 public class HumanPlayer : Player
@@ -11,9 +12,11 @@ public class HumanPlayer : Player
     // abilities ideas at
     // https://docs.google.com/document/d/1LpYGEeC7lE1ZL_0scx-RWHnhFhplDFFnN32FGQSOIfE/edit?ts=60226506
     public int ammo { get; set; }
+    private Vector2 direction = new Vector2(0, 0);
 
     private Camera viewport;       // basic camera works
     public AlienPlayer other_player { get; set; }
+    public Pivot bullet_handler { get; set; }
 
     public HumanPlayer(string filename, int columns, int rows, TiledObject obj) : base(filename, columns, rows, obj)
     {
@@ -21,6 +24,30 @@ public class HumanPlayer : Player
         ammo = 6;
         viewport = new Camera(0, 0, (game as MyGame).width, (game as MyGame).height);
         AddChild(viewport);
+    }
+
+    private void getBulletDirection()       // I don't like it
+    {
+        if (Input.GetKey(Key.A))
+        {
+            direction.x = -1;
+            if (!(Input.GetKey(Key.W)) && !(Input.GetKey(Key.S))) direction.y = 0;      // remove conditions here for 4, not 8 directions
+        }
+        if (Input.GetKey(Key.D))
+        {
+            direction.x = 1;
+            if (!(Input.GetKey(Key.W)) && !(Input.GetKey(Key.S))) direction.y = 0;
+        }
+        if (Input.GetKey(Key.W))
+        {
+            direction.y = -1;
+            if (!(Input.GetKey(Key.A)) && !(Input.GetKey(Key.D))) direction.x = 0;
+        }
+        if (Input.GetKey(Key.S))
+        {
+            direction.y = 1;
+            if (!(Input.GetKey(Key.A)) && !(Input.GetKey(Key.D))) direction.x = 0;
+        }
     }
 
     private void movementHandle()
@@ -43,6 +70,8 @@ public class HumanPlayer : Player
          * when pressing up, apply some "velocity" and increase player height - linearly in this part
          * regulate the above linear part by always applying gravity,
          * however let the gravity force reset to 0 and gradually increase after a jump initiation
+         * 
+         * BTW what do you mean "J" for double jump
          */
         if (jump_frames < MAX_JUMP_FRAMES && jumps_left > 0)
         {
@@ -50,6 +79,22 @@ public class HumanPlayer : Player
             velocity = MAX_VELOCITY;
             coll_info = MoveUntilCollision(0, velocity);
         }
+    }
+
+    private void spawnBullet()
+    {
+        RevolverBullet bullet = new RevolverBullet(this.x + this.width * direction.x, this.y + this.height * direction.y);
+        // if you spawn the bullet in the player, it dies immediately, thanks collision
+        bullet_handler.AddChild(bullet);
+
+        // patchwork, please don't leave as final
+        if (direction.x == 1 && direction.y == 0) bullet.rotation = 0; // 1,0  0,-1  -1,0  0,1
+        else if (direction.x == 0 && direction.y == -1) bullet.rotation = 90;
+        else if (direction.x == -1 && direction.y == 0) bullet.rotation = 180;
+        else if (direction.x == 0 && direction.y == 1) bullet.rotation = 270;
+
+        bullet.x_speed = 1.4f * direction.x;
+        bullet.y_speed = 1.4f * direction.y;
     }
 
     private void cameraCheck()
@@ -81,6 +126,8 @@ public class HumanPlayer : Player
 
     private void Update()
     {
+        getBulletDirection();
+        if (Input.GetKeyDown(Key.G)) spawnBullet();
         movementHandle();
         gravPullUntilFloor();
         cameraCheck();
