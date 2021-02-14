@@ -1,58 +1,134 @@
 ﻿using System;
 using GXPEngine;
 using GXPEngine.Core;
-using TiledMapParser;
 
 public class Player : AnimationSprite
 {
     protected Collision coll_info = null;
-    protected int HP;                       // for HP
-    protected float bullet_cooldown;        // for shooting
+    protected Vector2 direction = new Vector2(0, 0);
+    public Pivot bullet_handler { get; set; }
+    public int HP { get; set; }               // for HP
+    //protected float bullet_cooldown;        // for shooting
     //protected float cooldown;               // for abilities
-    protected float shield_timer;           // for Energy Shield
+    //protected float shield_timer;           // for Energy Shield
 
-    protected const float MAX_VELOCITY = -3.2f;     // bruteforced values that work kinda well
-    protected const int MAX_JUMP_FRAMES = 72;
+    protected const float LINEAR_VELOCITY = -3.2f;     // bruteforced values that work kinda well
+    protected const int MAX_AIR_FRAMES = 72;
 
-    protected float velocity;
     protected float pull_force;
-    protected int jumps_left;
+    protected bool can_jump = false;
     protected int jump_frames;
     protected int air_frames;
 
-    protected float x_speed = 1.2f;         // variable values here remain for polishing unless big complaints happen
+    protected float x_speed = 1.2f;
     protected float y_speed = 1.2f;
 
-    public Player(string filename, int columns, int rows, TiledObject obj) : base(filename, columns, rows)
+    public Player(string filename, int columns, int rows) : base(filename, columns, rows)
     {
-        /* common things between players:
-         * have HP (communication with HUD)
-         * have cooldowns on abilities (although different abilities)
-         * can pick up objects (probably still put in the separate classes)
-         * is affected by gravity (downward)
-         */
+        SetOrigin(width / 2, height / 2);
     }
 
-    protected void gravPullUntilFloor()         // why not just move this back to the separate classes
+    protected void jumpHandle()
+    {
+        if (jump_frames < MAX_AIR_FRAMES && can_jump)
+        {
+            jump_frames++;
+            coll_info = MoveUntilCollision(0, LINEAR_VELOCITY);
+        }
+    }
+
+    protected void GetDirectionVector()
+    {
+        if (Input.GetKey(Key.A))
+        {
+            direction.x = -1;
+            if (!(Input.GetKey(Key.W)) && !(Input.GetKey(Key.S))) direction.y = 0;      // remove conditions here for 4 instead of 8 directions
+        }
+        if (Input.GetKey(Key.D))
+        {
+            direction.x = 1;
+            if (!(Input.GetKey(Key.W)) && !(Input.GetKey(Key.S))) direction.y = 0;
+        }
+        if (Input.GetKey(Key.W))
+        {
+            direction.y = -1;
+            if (!(Input.GetKey(Key.A)) && !(Input.GetKey(Key.D))) direction.x = 0;
+        }
+        if (Input.GetKey(Key.S))
+        {
+            direction.y = 1;
+            if (!(Input.GetKey(Key.A)) && !(Input.GetKey(Key.D))) direction.x = 0;
+        }
+
+        // for ALIEN, DO NOT KEEP HERE!!!
+        if (Input.GetKey(Key.LEFT))
+        {
+            direction.x = -1;
+            if (!(Input.GetKey(Key.UP)) && !(Input.GetKey(Key.DOWN))) direction.y = 0;      // remove conditions here for 4 instead of 8 directions
+        }
+        if (Input.GetKey(Key.RIGHT))
+        {
+            direction.x = 1;
+            if (!(Input.GetKey(Key.UP)) && !(Input.GetKey(Key.DOWN))) direction.y = 0;
+        }
+        if (Input.GetKey(Key.UP))
+        {
+            direction.y = -1;
+            if (!(Input.GetKey(Key.LEFT)) && !(Input.GetKey(Key.RIGHT))) direction.x = 0;
+        }
+        if (Input.GetKey(Key.DOWN))
+        {
+            direction.y = 1;
+            if (!(Input.GetKey(Key.LEFT)) && !(Input.GetKey(Key.RIGHT))) direction.x = 0;
+        }
+    }
+
+    protected void ApplyGravityUntilFloor()         // why not just move this back to the separate classes
+    {
+        RestoreJumpsOnFloor();
+
+        pull_force = (float)(-0.0008f * (Math.Pow(air_frames, 2)));
+        if (air_frames < MAX_AIR_FRAMES) air_frames++;
+        if (coll_info == null) coll_info = MoveUntilCollision(0, -pull_force);     // !!!!
+    }
+
+    protected void RestoreJumpsOnFloor()
     {
         if (coll_info != null)
         {
-            if (coll_info.normal.y == -1)       // that means the player is landing/standing on a floor
+            if (coll_info.normal.y == -1)       // that should mean the player is landing/standing on a floor
             {
-                jumps_left = 3;
+                /*jumps_left = max_jumps_left;*/
                 jump_frames = 0;
                 air_frames = 0;
+                can_jump = true;
             }
         }
-
-        pull_force = (float)(-0.0008f * (Math.Pow(air_frames, 2)));       // welp, who cares about physics
-                                                                          // coll_info nulls properly midair in this state
-        if (air_frames < MAX_JUMP_FRAMES) air_frames++;
-        coll_info = MoveUntilCollision(0, -pull_force);
     }
 
-    protected void Update()
+    protected void HandleCollisions()       // it just doesn't detect collisions!
     {
-
+        if (coll_info != null)
+        {
+            if (coll_info.other is PickupCoin)
+            {
+                coll_info.other.LateDestroy();
+            }
+            if (coll_info.other is PickupHeart)
+            {
+                coll_info.other.LateDestroy();
+                HP++;
+                Console.WriteLine(HP);
+            }
+            if (coll_info.other is PickupShield)
+            {
+                coll_info.other.LateDestroy();
+            }
+        }
     }
+
+    /*protected void Update()
+    {
+        
+    }*/
 }

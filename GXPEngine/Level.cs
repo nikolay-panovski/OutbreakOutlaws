@@ -1,29 +1,41 @@
 ﻿using System;
+using System.Collections.Generic;
 using GXPEngine;
 using TiledMapParser;
 
 class Level : GameObject
 {
-    private HumanPlayer player1_ref;
-    private AlienPlayer player2_ref;
+    public List<Sprite> colliders { get; set; }
+    private HumanPlayer player1 = new HumanPlayer("colors.png", 1, 1);
+    private AlienPlayer player2 = new AlienPlayer("square.png", 1, 1);
+    //private DebugPlayer2 debug_ref;
     private Pivot bullet_handler = new Pivot();       // who the hell calls an empty container/handler class PIVOT??
-    //might need 2?
+    private Pivot acid_handler = new Pivot();
+
+    private ObjectManager spawner = new ObjectManager();
     public Level(string filename) : base()
     {
+        AddChild(spawner);
         AddChild(bullet_handler);
-        TiledLoader level_loader = new TiledLoader(filename);
-        level_loader.rootObject = this;
+        AddChild(acid_handler);
+        // tile spawning for floor
+        colliders = new List<Sprite>();
+        for (int tileX = -MyGame.TILE_SIZE; tileX <= game.width + MyGame.TILE_SIZE; tileX += MyGame.TILE_SIZE)
+        {
+            Sprite floor_tile = new FloorTile(tileX, game.height - MyGame.TILE_SIZE);
+            //colliders.Add(floor_tile);
+            AddChild(floor_tile);
+        }
 
-        level_loader.addColliders = true;
-        level_loader.autoInstance = true;
-        level_loader.LoadObjectGroups();
-        level_loader.LoadTileLayers();      // sprite origins bad?
 
-        player1_ref = FindObjectOfType<HumanPlayer>();
-        player2_ref = FindObjectOfType<AlienPlayer>();
+        player1.SetXY(256, 128);
+        AddChild(player1);
+        player1.other_player = player2;
+        player1.bullet_handler = bullet_handler;
 
-        player1_ref.other_player = player2_ref;
-        player2_ref.other_player = player1_ref;
-        player1_ref.bullet_handler = bullet_handler;
+        player2.SetXY(512, 128);
+        AddChild(player2);
+        player2.other_player = player1;
+        player2.bullet_handler = acid_handler;
     }
 }

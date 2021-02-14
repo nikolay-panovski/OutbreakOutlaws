@@ -4,10 +4,10 @@ using GXPEngine;
 
 public class MyGame : Game
 {
-	//private const int TILE_SIZE = 16;
+	public const int TILE_SIZE = 16;
 	public MyGame() : base(1024, 768, false)	// base game/window size = ?
 	{
-		// init debug
+		// "level" class probably only necessary because of possible menu/game over screens
 		Level level1 = new Level("test_map.tmx");
 		AddChild(level1);
 

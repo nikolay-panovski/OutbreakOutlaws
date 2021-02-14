@@ -37,7 +37,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AlienPlayer.cs" />
-    <Compile Include="DebugPlayer.cs" />
+    <Compile Include="DebugPlayer2.cs" />
+    <Compile Include="FloorTile.cs" />
     <Compile Include="GXPEngine\AddOns\Gizmos.cs" />
     <Compile Include="GXPEngine\AddOns\TiledLoader.cs" />
     <Compile Include="HUD.cs" />
@@ -81,6 +82,10 @@
     <Compile Include="GXPEngine\FMOD\FMODSoundSystem.cs" />
     <Compile Include="GXPEngine\SoLoud\Soloud.cs" />
     <Compile Include="GXPEngine\SoLoud\SoloudSoundSystem.cs" />
+    <Compile Include="ObjectManager.cs" />
+    <Compile Include="PickupShield.cs" />
+    <Compile Include="PickupHeart.cs" />
+    <Compile Include="PickupCoin.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="RevolverBullet.cs" />
   </ItemGroup>
