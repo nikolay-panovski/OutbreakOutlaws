@@ -59,6 +59,7 @@ public class AlienPlayer : Player
         GetDirectionVector();
         if (Input.GetKeyDown(Key.NUMPAD_4)) spawnBullet();
 
+        HandleCollisions();
         movementHandle();
         ApplyGravityUntilFloor();
     }

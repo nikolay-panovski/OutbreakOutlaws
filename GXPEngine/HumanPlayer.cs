@@ -131,6 +131,7 @@ public class HumanPlayer : Player
         GetDirectionVector();
         if (Input.GetKeyDown(Key.G)) spawnBullet();
 
+        HandleCollisions();
         movementHandle();
         ApplyGravityUntilFloor();
         //cameraCheck();

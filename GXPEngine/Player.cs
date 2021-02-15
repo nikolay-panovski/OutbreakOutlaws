@@ -106,13 +106,14 @@ public class Player : AnimationSprite
         }
     }
 
-    protected void HandleCollisions()       // it just doesn't detect collisions!
+    protected void HandleCollisions()
     {
         if (coll_info != null)
         {
             if (coll_info.other is PickupCoin)
             {
                 coll_info.other.LateDestroy();
+                Console.WriteLine("coin");
             }
             if (coll_info.other is PickupHeart)
             {
